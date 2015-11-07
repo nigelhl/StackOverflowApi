@@ -7,13 +7,14 @@ $(document).ready( function() {
 		getUnanswered(tags);
 	});
 
-	$.('.inspiration.getter').submit( function(event)){
+	$('.inspiration-getter').submit( function(event){
 		// zero out results if previous search has run
-		$('results').html('');
+		$('.results').html('');
+		console.log("this button has been pushed");
 		// get the value of the tags the user submitted
-		var tags = $this.find("input[name='answerers']").val();
-		getInspiration(tags);
-	}
+		var tags = $(this).find("input[name='answerers']").val();
+		getTopAnswerers(tags);
+	});
 });
 
 // this function takes the question object returned by StackOverflow 
@@ -73,7 +74,6 @@ var getUnanswered = function(tags) {
 								site: 'stackoverflow',
 								order: 'desc',
 								sort: 'creation'};
-	
 	var result = $.ajax({
 		url: "http://api.stackexchange.com/2.2/questions/unanswered",
 		data: request,
@@ -95,16 +95,63 @@ var getUnanswered = function(tags) {
 		$('.search-results').append(errorElem);
 	});
 };
+//=================================================//
 
-var getInspiration = function(tags)
-{
-	var request = 
-	{	tagged: tags,
-		site: 'stackoverflow',
-		order: 'desc',
-		sort: 'creation';
-	}
-}
+	
 
 
+var showAnswerer = function(answerer) {
+	
+	var result = $('.templates .answerer').clone();
+	
+	var answererElem = result.find('.answerer-name a');
+	answererElem.attr('href', answerer.user.link);
+	answererElem.text(answerer.user.display_name);
 
+	var reputationElem = result.find('.reputation');
+	reputationElem.text(answerer.user.reputation);
+	
+	var postCount = result.find(".post-count");
+	postCount.text(answerer.post_count);
+
+	return result;
+};
+
+var showSubmitResults = function(query, resultNum) {
+	var results = resultNum + ' results for <strong>' + query;
+	return results;
+};
+
+var showError = function(error){
+	var errorElem = $('.templates .error').clone();
+	var errorText = '<p>' + error + '</p>';
+	errorElem.append(errorText);
+};
+
+var getTopAnswerers = function(tags) {
+	
+	var request = {tagged: tags,
+								site: 'stackoverflow',
+								order: 'desc',
+								sort: 'creation'};
+	var result = $.ajax({
+		url: "http://api.stackexchange.com//2.2/tags/" + tags + "/top-answerers/all_time",
+		data: request,
+		dataType: "jsonp",
+		type: "GET",
+		})
+	.done(function(result){
+		var submitResults = showSubmitResults(request.tagged, result.items.length);
+
+		$('.search-results').html(submitResults);
+
+		$.each(result.items, function(i, item) {
+			var answerer = showAnswerer(item);
+			$('.results').append(answerer);
+		});
+	})
+	.fail(function(jqXHR, error, errorThrown){
+		var errorElem = showError(error);
+		$('.search-results').append(errorElem);
+	});
+};
