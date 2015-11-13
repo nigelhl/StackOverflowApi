@@ -134,18 +134,21 @@ var getTopAnswerers = function(tags) {
 								site: 'stackoverflow',
 								order: 'desc',
 								sort: 'creation'};
-	var result = $.ajax({
+	var result = $.ajax
+	({
 		url: "http://api.stackexchange.com//2.2/tags/" + tags + "/top-answerers/all_time",
 		data: request,
 		dataType: "jsonp",
 		type: "GET",
-		})
-	.done(function(result){
+	})
+	.done(function(result)
+	{
 		var submitResults = showSubmitResults(request.tagged, result.items.length);
 
 		$('.search-results').html(submitResults);
 
-		$.each(result.items, function(i, item) {
+		$.each(result.items, function(i, item) 
+		{
 			var answerer = showAnswerer(item);
 			$('.results').append(answerer);
 		});
